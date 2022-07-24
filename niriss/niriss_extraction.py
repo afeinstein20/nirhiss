@@ -118,11 +118,14 @@ def dirty_mask(img, tab=None, boxsize1=70, boxsize2=60, boxsize3=None,
                 mask[s:256, i] += m2
 
         # Third order boxmask
-        if boxsize3 is not None:
+        if boxsize3 is not None and i <= 860:
             if not np.isnan(pos3[i]):
                 s, e = int(pos3[i]-boxsize3/2), int(pos3[i]+boxsize3/2)
-                order3[:, i] = img[s:e, i]
-                mask[s:e, i] += m3
+                try:
+                    order3[:, i] = img[s:e, i]
+                    mask[s:e, i] += m3
+                except:
+                    mask[s:256, i] += m3
 
     if isplots >= 6:
         plt.imshow(mask)
@@ -306,11 +309,11 @@ def optimal_extraction_routine(data, var, spectrum, spectrum_var, sky_bkg,
 
     # Loops over each quadrant
     if per_quad:
-        es_all = np.zeros(3, dtype=np.ndarray)
-        ev_all = np.zeros(3, dtype=np.ndarray)
-        p_all = np.zeros(3, dtype=np.ndarray)
+        es_all = np.zeros(4, dtype=np.ndarray)
+        ev_all = np.zeros(4, dtype=np.ndarray)
+        p_all = np.zeros(4, dtype=np.ndarray)
 
-        for quad in range(1, 4):
+        for quad in range(1, 5):
             # Figures out which quadrant location to use
             if quad == 1:  # Isolated first order (top right)
                 x1, x2 = 1000, data.shape[2]
@@ -334,6 +337,10 @@ def optimal_extraction_routine(data, var, spectrum, spectrum_var, sky_bkg,
                 newdata = np.copy(data)[:, y1:y2, x1:x2]
 
                 index = 0  # Index for the box extracted spectra
+            elif quad == 4: # Third order extraction
+                x1, x2 = 0, 1000
+                y1, y2 = 120, 250
+                newdata = np.copy(data)[:, y1:y2, x1:x2]
 
             new_sky_bkg = np.copy(sky_bkg[:, y1:y2, x1:x2])
 

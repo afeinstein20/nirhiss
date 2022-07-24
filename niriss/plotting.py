@@ -58,15 +58,16 @@ plt.rcParams['legend.facecolor'] = 'none'
 __all__ = ['stacked_transits']
 
 def stacked_transits(time, wavelength, flux, variance,
-              centers=np.flip(np.linspace(0.85, 2.55, 15))):
+                     centers=np.flip(np.linspace(0.85, 2.55, 15)),
+                     offset=0.05, offset_delta=0.005, figsize=(8,14),
+                     text=True, time_ind=230, linestyle=''):
     global colors
     wave_offset = 0.5
 
     x = 0
 
-    fig, ax = plt.subplots(figsize=(8, 14))
+    fig, ax = plt.subplots(figsize=figsize)
     fig.set_facecolor('w')
-    offset=0.05
 
     for center in centers:
         q = np.where((wavelength>=center-wave_offset) &
@@ -76,18 +77,23 @@ def stacked_transits(time, wavelength, flux, variance,
         spec = np.nansum(flux[:,q],axis=1)/1e6
         yerr = np.sqrt(np.nansum(variance[:,q]**2,axis=1))/1e6
 
-        yerr /= np.nanmedian(spec[210:])
-        spec /= np.nanmedian(spec[210:])
+        print('rms = ', np.sqrt(np.nansum(spec[:time_ind]**2)/time_ind))
+
+        yerr /= np.nanmedian(spec)
+        spec /= np.nanmedian(spec)
 
         ax.errorbar(time,
-                    spec/np.nanmedian(spec[210:])-offset,
-                    yerr=yerr, linestyle='', c=colors[x],
+                    spec-offset,
+                    yerr=yerr, linestyle=linestyle, c=colors[x],
                     marker='.', label=np.round(center,2))
 
-        ax.text(x=time[230], y=np.nanmedian(spec[210:])-offset+0.001,
-                s='{} $\mu$m'.format(np.round(center,2)),
-                fontsize=16)
 
-        offset -= 0.005
+
+        if text:
+            ax.text(x=time[time_ind], y=np.nanmedian(spec[210:])-offset+0.001,
+                    s='{} $\mu$m'.format(np.round(center,2)),
+                    fontsize=16)
+
+        offset -= offset_delta
         x+=15
     return fig
