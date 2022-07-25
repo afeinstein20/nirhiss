@@ -303,8 +303,7 @@ def mask_method_ears(data, degree=4, readnoise=10,
     def diagnostic_plotting(x, y, model, model_final):
         """ Plots the data, the first fit, and the final best-fit. """
         nonlocal summed
-        plt.figure(3330)
-        plt.clf()
+        plt.figure(figsize=(14,4))
         plt.imshow(summed, vmin=np.nanpercentile(summed, 5),
                    vmax=np.nanpercentile(summed, 75), aspect='auto')
         plt.plot(x, y, 'k.', label='Data')
@@ -320,10 +319,7 @@ def mask_method_ears(data, degree=4, readnoise=10,
     else:
         summed = np.copy(data)
 
-    ccd = CCDData(summed*units.electron)
-
-    new_ccd_no_premask = ccdp.cosmicray_lacosmic(ccd, readnoise=readnoise,
-                                                 sigclip=4, verbose=False)
+    new_ccd_no_premask = CCDData(summed*units.electron)
 
     x = np.arange(0, new_ccd_no_premask.data.shape[1], 1)
 
@@ -334,11 +330,12 @@ def mask_method_ears(data, degree=4, readnoise=10,
     # Extraction for the first order
     center_1 = np.zeros(new_ccd_no_premask.data.shape[1])
     for i in range(len(center_1)):
-        height = define_peak_params(new_ccd_no_premask.data[:, i])
+        height = define_peak_params(new_ccd_no_premask.data[:, i],
+                                    which_std=2)
         p = identify_peaks(new_ccd_no_premask.data[:, i],
                            height=height,
                            distance=10.0)
-        center_1[i] = np.nanmedian(x[p])  # Takes the median between peaks
+        center_1[i] = np.nanmean(x[p])  # Takes the median between peaks
 
     # Iterate on fitting a profile to remove outliers from the first go
     fit1 = fit_function(x, center_1, deg=degree)
@@ -362,7 +359,7 @@ def mask_method_ears(data, degree=4, readnoise=10,
             col = new_ccd_no_premask.data[:, i]
             newx, newcol = mask_profile(mu=tab['order_1'][i], x=colx, y=col)
 
-            if (i <= 750) and (order3):
+            if (i <= 800) and (order3):
                 # Can't get a good guesstimate for 3rd order past pixel~750
                 height = define_peak_params(newcol+10, which_std=1)
                 p = identify_peaks(newcol+10, height=height, distance=10.0)
@@ -377,7 +374,7 @@ def mask_method_ears(data, degree=4, readnoise=10,
                 newx, newcol = mask_profile(mu=center_1[i], x=newx,
                                             y=newcol)  # masks 1st order
 
-            if (i >= 700) and (i <= 1850):
+            if (i >= 650) and (i <= 1850):
                 # Can't get a good guesstimate for 2nd order past pixel~500
                 height = define_peak_params(newcol+10, which_std=1)
                 p = identify_peaks(newcol+10, height=height, distance=10.0)

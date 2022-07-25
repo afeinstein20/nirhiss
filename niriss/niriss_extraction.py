@@ -53,7 +53,7 @@ def box_extract(data, var, boxmask):
     return all_spec, all_var
 
 
-def dirty_mask(img, tab=None, boxsize1=70, boxsize2=60, boxsize3=None,
+def dirty_mask(img, tab=None, boxsize1=70, boxsize2=None, boxsize3=None,
                booltype=False, return_together=False, pos1=None, pos2=None,
                pos3=None, isplots=0):
     """Really dirty box mask for background purposes.
@@ -88,8 +88,12 @@ def dirty_mask(img, tab=None, boxsize1=70, boxsize2=60, boxsize3=None,
     m3 : np.ndarray
        Box mask for the third order. Returns if `return_together=False`.
     """
-    order1 = np.zeros((boxsize1, len(img[0])))
-    order2 = np.zeros((boxsize2, len(img[0])))
+    if boxsize1 is not None:
+        order1 = np.zeros((boxsize1, len(img[0])))
+
+    if boxsize2 is not None:
+        order2 = np.zeros((boxsize2, len(img[0])))
+
     if boxsize3 is not None:
         order3 = np.zeros((boxsize3, len(img[0])))
     mask = np.zeros(img.shape)
@@ -98,34 +102,43 @@ def dirty_mask(img, tab=None, boxsize1=70, boxsize2=60, boxsize3=None,
         pos1 = np.copy(tab['order_1'])
         pos2 = np.copy(tab['order_2'])
         pos3 = np.copy(tab['order_3'])
+        x = np.copy(tab['x'])
+    else:
+        x = np.arange(0, img.shape[1], 1, dtype=int)
 
     m1, m2, m3 = 2, 4, 16
 
-    for i in range(img.shape[1]):
-        # First order box mask
-        s, e = int(pos1[i]-boxsize1/2), int(pos1[i]+boxsize1/2)
-        order1[:, i] = img[s:e, i]
-        mask[s:e, i] += m1
-
-        # Second order box mask
-        if np.isnan(pos2[i])==False:
-            s, e = int(pos2[i]-boxsize2/2), int(pos2[i]+boxsize2/2)
-            try:
-                order2[:, i] = img[s:e, i]
-                mask[s:e, i] += m2
-            except:
-                #order2[:(256-s), i] = img[s:256, i]
-                mask[s:256, i] += m2
-
-        # Third order boxmask
-        if boxsize3 is not None and i <= 860:
-            if not np.isnan(pos3[i]):
-                s, e = int(pos3[i]-boxsize3/2), int(pos3[i]+boxsize3/2)
+    for i in range(len(x)):
+        if x[i] < 0:
+            pass
+        else:
+            # First order box mask
+            if boxsize1 is not None:
+                s, e = int(pos1[i]-boxsize1/2), int(pos1[i]+boxsize1/2)
                 try:
-                    order3[:, i] = img[s:e, i]
-                    mask[s:e, i] += m3
+                    order1[:, int(x[i])] = img[s:e, int(x[i])]
+                    mask[s:e, int(x[i])] += m1
                 except:
-                    mask[s:256, i] += m3
+                    mask[0:e, int(x[i])] += m1
+
+            # Second order box mask
+            if np.isnan(pos2[i])==False and boxsize2 is not None:
+                s, e = int(pos2[i]-boxsize2/2), int(pos2[i]+boxsize2/2)
+                try:
+                    order2[:, int(x[i])] = img[s:e, int(x[i])]
+                    mask[s:e, int(x[i])] += m2
+                except:
+                    mask[s:256, int(x[i])] += m2
+
+            # Third order boxmask
+            if boxsize3 is not None and i <= 900:
+                if not np.isnan(pos3[i]):
+                    s, e = int(pos3[i]-boxsize3/2), int(pos3[i]+boxsize3/2)
+                    try:
+                        order3[:, int(x[i])] = img[s:e, int(x[i])]
+                        mask[s:e, int(x[i])] += m3
+                    except:
+                        mask[s:256, int(x[i])] += m3
 
     if isplots >= 6:
         plt.imshow(mask)

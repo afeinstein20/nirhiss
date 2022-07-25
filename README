@@ -6,7 +6,7 @@ ADF_extracted_stellar_spectra
     any noise
   - Removing cosmic rays and interpolating over
   - Using the 2D modeled background to get rid of 1/f noise
-  - Subtracting and median from each column
+  - Subtracting the median from each column
 
 ADF_extracted_stellar_spectra_method2
   - F277W filter from the median image, but only using the high outliers so
@@ -16,3 +16,10 @@ ADF_extracted_stellar_spectra_method2
   - Removing cosmic rays and interpolating over
   - Removing bad integrations (5 in total)
   - No additional background modeling
+
+ADF_extracted_stellar_spectra_method3
+  - F277W filter from the median image, then gaussian filtered to smooth
+    any noise
+  - DQ masked and interpolated pixels
+  - Using the SUBSTRIP256 model background provided on JDOX
+  - Removing cosmic rays and interpolating over

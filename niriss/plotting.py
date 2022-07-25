@@ -68,8 +68,9 @@ def stacked_transits(time, wavelength, flux, variance,
 
     fig, ax = plt.subplots(figsize=figsize)
     fig.set_facecolor('w')
+    rms = np.zeros(len(centers))
 
-    for center in centers:
+    for i, center in enumerate(centers):
         q = np.where((wavelength>=center-wave_offset) &
                      (wavelength<=center+wave_offset) &
                      (np.nansum(variance,axis=0) < 1e7))[0]
@@ -77,7 +78,7 @@ def stacked_transits(time, wavelength, flux, variance,
         spec = np.nansum(flux[:,q],axis=1)/1e6
         yerr = np.sqrt(np.nansum(variance[:,q]**2,axis=1))/1e6
 
-        print('rms = ', np.sqrt(np.nansum(spec[:time_ind]**2)/time_ind))
+        rms[i] = np.sqrt(np.nansum(spec[:100]**2)/100)
 
         yerr /= np.nanmedian(spec)
         spec /= np.nanmedian(spec)
@@ -95,5 +96,5 @@ def stacked_transits(time, wavelength, flux, variance,
                     fontsize=16)
 
         offset -= offset_delta
-        x+=15
-    return fig
+        x+=int(256/len(centers)-1)
+    return fig, rms
