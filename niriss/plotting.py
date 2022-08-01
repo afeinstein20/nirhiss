@@ -69,6 +69,7 @@ def stacked_transits(time, wavelength, flux, variance,
     fig, ax = plt.subplots(figsize=figsize)
     fig.set_facecolor('w')
     rms = np.zeros(len(centers))
+    grid = np.zeros((len(centers), len(flux)))
 
     for i, center in enumerate(centers):
         q = np.where((wavelength>=center-wave_offset) &
@@ -87,6 +88,7 @@ def stacked_transits(time, wavelength, flux, variance,
                     spec-offset,
                     yerr=yerr, linestyle=linestyle, c=colors[x],
                     marker='.', label=np.round(center,2))
+        grid[i] = spec
 
 
 
@@ -97,4 +99,4 @@ def stacked_transits(time, wavelength, flux, variance,
 
         offset -= offset_delta
         x+=int(256/len(centers)-1)
-    return fig, rms
+    return fig, rms, grid

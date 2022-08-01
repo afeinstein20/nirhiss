@@ -400,8 +400,8 @@ def mask_method_ears(data, degree=4, readnoise=10,
                                    center_2[rmv_nans], fit2(x[rmv_nans]),
                                    which_std=1)
         # Need some points from the first order to anchor second order
-        x2 = np.append(x[:100], x2)
-        y2 = np.append(tab['order_1'][:100]+15, y2)
+        x2 = np.append(x[:150], x2)
+        y2 = np.append(tab['order_1'][:150]+20, y2)
 
         fit2_final = fit_function(x2, y2, deg=degree)
 

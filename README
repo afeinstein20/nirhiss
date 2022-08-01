@@ -12,7 +12,7 @@ ADF_extracted_stellar_spectra_method2
   - F277W filter from the median image, but only using the high outliers so
     it captures the 0th order effects and not any noise in the image
   - DQ masked and interpolated pixels
-  - Using the SUBSTRIP256 model background provided on JDOX
+  - Using the SUBSTRIP256 model background provided on JDox
   - Removing cosmic rays and interpolating over
   - Removing bad integrations (5 in total)
   - No additional background modeling
@@ -23,3 +23,12 @@ ADF_extracted_stellar_spectra_method3
   - DQ masked and interpolated pixels
   - Using the SUBSTRIP256 model background provided on JDOX
   - Removing cosmic rays and interpolating over
+
+ADF_extracted_stellar_spectra_method4
+  - F277W filter from the median image, but only using the high outliers so
+    it captures the 0th order effects and not any noise in the image
+  - DQ masked and interpolated pixels
+  - Using the SUBSTRIP256 model bacgrkound provided on JDox
+  - Removing cosmic rays and interpolating over
+  - Minor additional background correction (only looking at pixels <1.8 sigma),
+    interpolating, and smoothing with a Gaussian filter
