@@ -2,7 +2,6 @@ import numpy as np
 from tqdm import tqdm
 import ccdproc as ccdp
 from astropy import units
-import multiprocessing as mp
 import matplotlib.pyplot as plt
 from astropy.nddata import CCDData
 from astropy.stats import SigmaClip
