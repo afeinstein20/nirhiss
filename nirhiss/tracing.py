@@ -2,15 +2,17 @@ import os
 import numpy as np
 import ccdproc as ccdp
 from astropy import units
+from astropy.io import fits
+import matplotlib.pyplot as plt
 from astropy.table import Table
 from astropy.nddata import CCDData
-from astropy.io import fits
 from scipy.signal import find_peaks
 from skimage.morphology import disk
 from skimage import filters, feature
+from scipy.interpolate import interp1d
 from scipy.ndimage import gaussian_filter
 from astropy.modeling.models import Moffat1D
-import matplotlib.pyplot as plt
+
 
 __all__ = ['image_filtering', 'simplify_niriss_img',
            'mask_method_edges', 'mask_method_ears', 'f277_mask',
@@ -18,7 +20,8 @@ __all__ = ['image_filtering', 'simplify_niriss_img',
 
 
 def image_filtering(img, radius=1, gf=4):
-    """Does some simple image processing to isolate where the
+    """
+    Does some simple image processing to isolate where the
     spectra are located on the detector.
 
     This routine is optimized for NIRISS S2 processed data and
@@ -68,7 +71,8 @@ def image_filtering(img, radius=1, gf=4):
 
 
 def simplify_niriss_img(data):
-    """Creates an image to map out where the orders are in
+    """
+    Creates an image to map out where the orders are in
     the NIRISS data.
 
     Parameters
@@ -90,7 +94,8 @@ def simplify_niriss_img(data):
 
 
 def f277_mask(f277, radius=1, gf=4):
-    """Marks the overlap region in the f277w filter image.
+    """
+    Marks the overlap region in the f277w filter image.
 
     Parameters
     ----------
@@ -239,7 +244,8 @@ def mask_method_edges(data, radius=1, gf=4,
 def mask_method_ears(data, degree=4, readnoise=10,
                      order3=True, save=False,
                      outdir=None, isplots=0):
-    """A second method to extract the masks for the first and
+    """
+    A second method to extract the masks for the first and
     second orders in NIRISS data.
 
     This method uses the vertical profile of a summed image to identify the
@@ -424,8 +430,9 @@ def mask_method_ears(data, degree=4, readnoise=10,
     return tab
 
 
-def ref_file(filename):
-    """Reads in the order traces from the STScI JWST reference file.
+def ref_file(filename, offset=1795):
+    """
+    Reads in the order traces from the STScI JWST reference file.
 
     Parameters
     ----------
@@ -438,11 +445,30 @@ def ref_file(filename):
        Table with x,y positions for the first and second NIRISS
        orders.
     """
-    with fits.open(filename) as hdu:
-        tab = Table()
-        tab['x'] = hdu[0].data['X']
-        tab['order_1'] = hdu[0].data['Y']
-        tab['order_2'] = hdu[1].data['Y']
-        tab['order_3'] = hdu[2].data['Y']
+    trace = fits.open(filename)
+
+    trace_guesses = np.full((3,2048), np.nan)
+    for i in range(1,4):
+        if i == 1:
+            upp = 2048
+        elif i == 2:
+            upp = 1900
+        else:
+            upp = 1000
+        inds = ((trace[i].data['x']>=-10) & (trace[i].data['x']<=upp) &
+                (np.isnan(trace[i].data['x'])==False))
+
+        interp = interp1d(trace[i].data['x'][inds], trace[i].data['y'][inds])
+        try:
+            trace_guesses[i-1][:upp] = interp(np.arange(0,upp,1))
+        except:
+            trace_guesses[i-1][:upp-10] = interp(np.arange(0,upp-10,1))
+
+    tab = Table()
+    tab['x'] = np.arange(0,2048,1)
+    for i in range(3):
+        tab['order_{}'.format(i+1)] = trace_guesses[i] - offset
+
+    trace.close()
 
     return tab

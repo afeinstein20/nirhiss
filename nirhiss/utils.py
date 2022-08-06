@@ -1,17 +1,78 @@
 import numpy as np
+from tqdm import tqdm
 from astropy.table import Table
+import transitspectroscopy as ts
 
-__all__ = ['bin_at_resolution', 'chromatic_writer',
-           'lpc_to_format']
+__all__ = ['scaling_image_regions', 'bin_at_resolution', 'chromatic_writer',
+           'exotep_to_ers_format', 'get_MAD_sigma']
+
+def scaling_image_regions(integraions, bkg, x1, x2, y1, y2,
+                          vals=np.linspace(0,10,500), test=True):
+    """
+    Scales a given (x1, y1) to (x2, y2) region of the input integration
+    to the input background. This function is meant to be used for scaling the
+    STScI model background and the F277W regions to the raw Stage 2
+    integrations.
+
+    Parameters
+    ----------
+    integrations : np.ndarray
+       The data frames to scale the background to.
+    bkg : np.ndarray
+       The background model to use.
+    x1 : int
+       The lower left x-coordinate of the region to scale.
+    x2 : int
+       The upper right x-coordinate of the region to scale.
+    y1 : int
+       The lower left y-coordinate of the region to scale.
+    y2 : int
+       The upper right y-coordinate of the region to scale.
+    vals : np.array, optional
+       The scaling values to test over. Default is `np.linspace(0,10,500)`.
+       I recommend running this with `test = True` first, and then changing this
+       vals array to be centered on the best fit from the test round.
+    test : bool, optional
+       The option to test values first before running the whole scaling routine.
+       Default is `True`. If `True`, will only run the first five integrations
+       and print the scaling values from that run.
+
+    Returns
+    -------
+    scaling_val : float
+       The median best-fit scaling value from the background to the integration.
+    """
+
+    shape = (x2-x1) * (y2-y1)
+    scaling_vals = np.zeros(len(integrations))
+
+    if test:
+        length = 5
+    else:
+        length=len(integrations)
+
+    for j in tqdm(range(length)):
+        rms = np.zeros(len(vals))
+
+        for i, v in enumerate(vals):
+            diff = integrations[j][x1:x2,y1:y2] - (bkg[x1:x2,y1:y2]*v)
+            rms[i] = np.sqrt(np.nansum(diff**2)/shape)
+
+        scaling_vals[j] = vals[np.argmin(rms)]
+
+    if test:
+        print(scaling_vals[:5])
+
+    return np.nanmedian(scaling_vals)
+
 
 def chromatic_writer(filename, time, wavelength, flux, var):
-    # Writes numpy files to read into chromatic
-    np.save(filename+'.npy',
-            [time, wavelength, flux, var])
+    """Writes numpy files to read into chromatic reader for `feinstein.py`."""
+    np.save(filename+'.npy', [time, wavelength, flux, var])
     return
 
 
-def lpc_to_format(filename1, filename2, filename):
+def exotep_to_ers_format(filename1, filename2, filename):
     """
     Takes the outputs of exotep and puts it in the agreed upon format.
 
@@ -46,25 +107,24 @@ def lpc_to_format(filename1, filename2, filename):
         tab.add_row(row)
 
     tab.write(filename, format='csv', overwrite=True)
-
     return tab
 
-def bin_at_resolution(wavelengths, depths, R = 100, method = 'median'):
+def bin_at_resolution(wavelengths, depths, R=100, method='median'):
     """
-    Function that bins input wavelengths and transit depths (or any other observable, like flux) to a given
-    resolution `R`. Useful for binning transit depths down to a target resolution on a transit spectrum.
+    A wrapper for `transitspectroscopy.utils.bin_at_resoluion`.
+
     Parameters
     ----------
     wavelengths : np.array
         Array of wavelengths
-
     depths : np.array
         Array of depths at each wavelength.
     R : int
         Target resolution at which to bin (default is 100)
     method : string
-        'mean' will calculate resolution via the mean --- 'median' via the median resolution of all points
-        in a bin.
+        'mean' will calculate resolution via the mean --- 'median' via the
+        median resolution of all points in a bin.
+
     Returns
     -------
     wout : np.array
@@ -73,46 +133,18 @@ def bin_at_resolution(wavelengths, depths, R = 100, method = 'median'):
         Depth of the bin.
     derrout : np.array
         Error on depth of the bin.
-
     """
+    outputs = ts.utils.bin_at_resolution(wavelength, depths, R=R, method=method)
+    return outputs[0], outputs[1], outputs[2]
 
-    # Sort wavelengths from lowest to highest:
-    idx = np.argsort(wavelengths)
+def get_MAD_sigma(x, median):
+    """
+    Wrapper function for transitspectroscopy.utils.get_MAD_sigma to estimate
+    the noise properties of the light curves.
 
-    ww = wavelengths[idx]
-    dd = depths[idx]
-
-    # Prepare output arrays:
-    wout, dout, derrout = np.array([]), np.array([]), np.array([])
-
-    oncall = False
-
-    # Loop over all (ordered) wavelengths:
-    for i in range(len(ww)):
-
-        if not oncall:
-
-            # If we are in a given bin, initialize it:
-            current_wavs = np.array([ww[i]])
-            current_depths = np.array(dd[i])
-            oncall = True
-
-        else:
-
-            # On a given bin, append next wavelength/depth:
-            current_wavs = np.append(current_wavs, ww[i])
-            current_depths = np.append(current_depths, dd[i])
-
-            # Calculate current mean R:
-            current_R = np.mean(current_wavs) / np.abs(current_wavs[0] - current_wavs[-1])
-
-            # If the current set of wavs/depths is below or at the target resolution, stop and move to next bin:
-            if current_R <= R:
-
-                wout = np.append(wout, np.mean(current_wavs))
-                dout = np.append(dout, np.mean(current_depths))
-                derrout = np.append(derrout, np.sqrt(np.var(current_depths)) / np.sqrt(len(current_depths)))
-
-                oncall = False
-
-    return wout, dout, derrout
+    Parameters
+    ----------
+    x : np.ndarray
+    median : np.ndarray
+    """
+    mad = ts.utils.get_mad_sigma(x, median)

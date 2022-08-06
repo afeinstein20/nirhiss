@@ -2,8 +2,19 @@
   <img width = "600" src="./figures/snek.png"/>
 </p>
 
-This is a repository with NIRISS Stage 3 data reduction tools.
+Welcome to nirHiss, a data reduction routine for the curviest JWST
+instrument! Here, you'll find all kinds of tricks to extracting high-precision
+NIRISS light curves (and subsequently transmission spectra)!
 
+For installation, you can grab the latest release from PyPI by doing:
+
+        pip install nirhiss
+
+or you can the latest development version by doing:
+
+        git clone https://github.com/afeinstein20/nirhiss
+        cd eleanor
+        python setup.py install
 
 ADF_extracted_stellar_spectra
   - F277W filter from the median image, then gaussian filtered to smooth

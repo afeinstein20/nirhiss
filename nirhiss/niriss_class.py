@@ -3,21 +3,21 @@ import numpy as np
 from astropy.io import fits
 import time as time_pkg
 
-from .tracing_niriss import mask_method_edges, mask_method_ears, ref_file
+from .tracing import mask_method_edges, mask_method_ears, ref_file
 from .masking import data_quality_mask, interpolating_col
-from .background import fitbg3
-from .niriss_extraction import (dirty_mask, box_extract,
-                                optimal_extraction_routine)
+from .background_utils import *
+from .extraction import (dirty_mask, box_extract, optimal_extraction_routine)
 
 
-__all__ = ['NIRISS_S3']
+__all__ = ['ReduceNirHiss']
 
 
-class NIRISS_S3(object):
+class ReduceNirHiss(object):
 
-    def __init__(self, filename, f277_filename=None,
-                 data_dir=None, output_dir=None):
-        """Initializes the NIRISS S3 data reduction class.
+    def __init__(self, files, f277_filename,
+                 crds_cache=None, data_dir=None, output_dir=None):
+        """
+        Initializes the NIRISS S3 data reduction class.
 
         Parameters
         ----------
@@ -47,21 +47,19 @@ class NIRISS_S3(object):
            Array of masks for bad pixels.
         bkg_removed : np.ndarray
            Data - background array.
-        trace_ear : astropy.table.Table
+        trace_table : astropy.table.Table
            Astropy table with x,y coordinates for each order.
-           `trace_ear` is initialized when using the method `edges`.
-        trace_edge : astropy.table.Table
-           Astropy table with x,y coordinates for each order.
-           `trace_edge` is initialized when using the method `centers`.
-        box_spectra1 : np.ndarray
+        trace_type : str
+           Reference to which method of trace identification was used.
+        box_spectra_order1 : np.ndarray
            Box extracted spectra for the first order.
-        box_spectra2 : np.ndarray
+        box_spectra_order2 : np.ndarray
            Box extracted spectra for the second order.
         box_mask_separate : np.ndarray
            Attribute for separate box masks per each order. Created
            when `dirty_mask(return_together == False)`.
         """
-        self.filename = filename
+        self.files = files
         self.datetime = time_pkg.strftime('%Y-%m-%d')
 
         if data_dir is not None:
@@ -77,26 +75,19 @@ class NIRISS_S3(object):
         # Opens the science FITS file and sets up all proper
         #   data attributes for the reduction steps.
         self.setup()
+        self.setup_f277(f277_filename)
 
-        self.dq_mask = data_quality_mask(self.dq)
-
-        if f277_filename is not None:
-            self.setup_f277(f277_filename)
-        else:
-            self.f277 = None
-            print('Without F277W filter image, some functions may not be '
-                  'available.')
-
-        self.trace_ear = None
-        self.trace_edge = None
         self.bkg = None
         self.box_mask = None
         self.box_var1 = None
         self.box_var2 = None
+        self.bq_masked = False
+        self.trace_type = None
+        self.trace_table = None
         self.bkg_removed = None
-        self.box_spectra1 = None
-        self.box_spectra2 = None
         self.box_mask_separate = None
+        self.box_spectra_order1 = None
+        self.box_spectra_order2 = None
 
         return
 
@@ -105,69 +96,60 @@ class NIRISS_S3(object):
 
         Attributes
         ----------
-        mhdr : FITS header
-           The main header in the FITS file.
-        shdr : FITS header
-           The header associated with the science frame
-           extension.
-        intend : float
-        time : np.ndarray
+        times : np.ndarray
            Array of time values based on the exposure start
            and stop times indicated in the FITS header.
-        time_units : str
-           The units `self.time` is in.
-        inttime : float
-           The effective integration time (in seconds).
+        time_unit : str
+           What units the time array is in.
         data : np.ndarray
            3D array of science group images.
-        err : np.ndarray
+        errors : np.ndarray
            3D array of errors associated with the science
            frames.
         dq : np.ndarray
            3D array of data quality masks, indicating the
            location of bad pixels.
-        var : np.ndarray
+        variance : np.ndarray
            3D array of poisson estimated variances.
-        v0 : np.ndarray
-           3D array of rnoise estimated variances.
-        meta : np.ndarray
-           The array of ASDF additional meta data within
-           the FITS file.
-        median : np.ndarray
-           Median frame of all science images.
         """
-        with fits.open(os.path.join(self.data_dir, self.filename)) as hdu:
-            self.mhdr = hdu[0].header        # Sets in the meta data header
-            self.shdr = hdu['SCI', 1].header  # Sets the science data header
+        for fn in self.files:
+            hdus = []
+            counter = []
+            for i in range(len(files)):
+                hdus.append(fits.open(os.path.join(self.data_dir,
+                                                   self.files[i])))
+                counter.append(len(hdus[i][1].data))
 
-            self.intend = np.copy(hdu[0].header['NINTS'])
-            self.time = np.linspace(self.mhdr['EXPSTART'],
-                                    self.mhdr['EXPEND'],
-                                    int(self.intend))
+            counts = np.nansum(counter)
 
-            self.time_units = 'BJD_TDB'
-            self.inttime = hdu[0].header['EFFINTTM']
+        self.data = np.zeros((counts, 256, 2048))
+        self.variance = np.zeros((counts, 256, 2048))
+        self.errors = np.zeros((counts, 256, 2048))
+        self.times = np.zeros(counts)
+        self.dq = np.zeros((counts, 256, 2048))
 
-            # Loads all the data in
-            self.data = np.copy(hdu['SCI', 1].data)
-            self.raw_data = np.copy(hdu['SCI', 1].data)
-            self.err = np.copy(hdu['ERR', 1].data)
-            self.dq = np.copy(hdu['DQ', 1].data)
+        for i in range(len(counter)):
+            inttime = hdus[i][0].header['EFFINTTM']
 
-            self.var = hdu['VAR_POISSON', 1].data*self.inttime**2.0
-            self.v0 = hdu['VAR_RNOISE', 1].data*self.inttime**2.0
+            if i == 0:
+                start, end = 0, counter[0]
+            else:
+                start = np.nansum(counter[:i])
+                end = np.nansum(counter[:i+1])
 
-            self.meta = hdu[-1].data
+            self.data[start:end] = np.copy(hdus[i][1].data)
+            self.errors[start:end] = np.copy(hdus[i][2].data)
+            self.variance[start:end] = hdus[i][5].data * inttime**2.0
 
-            # Removes NaNs from the data & error/variance arrays
-            self.data[np.isnan(self.data)] = 0.0
-            self.err[np.isnan(self.err)] = 0.0
-            self.var[np.isnan(self.var)] = 0.0
-            self.v0[np.isnan(self.v0)] = 0.0
+            # makes DQ mask from DQ fits extension
+            self.dq[start:end] = masking.data_quality_mask(hdus[i][3].data)
 
-            print(hdu['DQ', 1].data.shape)
+            self.times[start:end] = np.copy(hdus[i][4].data['int_mid_BJD_TDB'])
+            hdus[i].close()
 
-            self.median = np.nanmedian(self.data, axis=0)
+        self.times += 0.5
+        self.time_unit = 'BJD'
+        return
 
     def setup_f277(self, filename):
         """Opens and assigns proper attributes for the F277W filter
@@ -185,6 +167,8 @@ class NIRISS_S3(object):
         """
         with fits.open(os.path.join(self.data_dir, filename)) as hdu:
             self.f277 = hdu[1].data
+            self.f277_dq = data_quality_mask(hdu[3].data)
+        return
 
     def clean_up(self):
         """
@@ -193,19 +177,41 @@ class NIRISS_S3(object):
         This routine removes bad quality pixels from the following
         images:
            - `self.data`
-           - `self.err`
-           - `self.var`
+           - `self.errors`
+           - `self.variance`
         """
-        print('Cleaning data . . .')
-        self.data = interpolating_col(self.data, mask=self.dq)
-        print('Cleaning error . . .')
-        self.err = interpolating_col(self.err, mask=self.dq)
-        print('Cleaning variance . . .')
-        self.var = interpolating_col(self.var, mask=self.dq)
+        print('Cleaning data from bad DQ pixels . . .')
+        for i in tqdm(range(len(self.data))):
+            self.data[i] = interpolating_image(self.data[i], self.dq[i])
+            self.errors[i] = interpolating_image(self.errors[i], self.dq[i])
+            self.variance[i] = interpolating_image(self.variance[i], self.dq[i])
+
+        self.dq_masked = True
+
         self.median = np.nanmedian(self.data, axis=0)
 
+    def model_bkg_removal(self, filename, data_dir=None):
+        """
+        Scales and removes the pre-determined background model from the STScI
+        crew. The models can be downloaded here:
+
+        Parameters
+        ----------
+        filename : str
+           Name of the background model file. Should be a `.npy` file.
+        data_dir : str, optional
+           The path to where the background model is stored. Default is `None`.
+           If `None` will search the directory where the FITS files are stored
+           (`self.data_dir`).
+
+        Attributes
+        ----------
+        scaled_model_bkg : np.ndarray
+        """
+
     def map_trace(self, method='profile', ref_filename=None, isplots=0):
-        """Calculates the trace of the first and second NIRISS orders.
+        """
+        Calculates the trace of Orders 1, 2, and 3 of NIRISS.
 
         Parameters
         ----------
@@ -230,15 +236,18 @@ class NIRISS_S3(object):
         """
         if method.lower() == 'edges':
             if self.f277 is not None:
-                self.trace_ear = mask_method_edges(self, isplots=isplots)
+                self.trace_table = mask_method_edges(self, isplots=isplots)
+                self.trace_type = 'ear'
             else:
                 return('Need F277W filter to run this trace finding method.')
 
         elif method.lower() == 'profile':
-            self.trace_edge = mask_method_ears(self, isplots=isplots)
+            self.trace_table = mask_method_ears(self, isplots=isplots)
+            self.trace_type = 'edge'
 
         elif method.lower() == 'ref':
-            self.tab3 = ref_file(ref_filename)
+            self.trace_table = ref_file(ref_filename)
+            self.trace_type = 'reference'
 
         else:
             return('Trace method not implemented. Options are `edges` and '

@@ -9,7 +9,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from .utils import bin_at_resolution
 
-__all__ = ['stacked_transits', 'transmission_spectrum', 'transit_residuals']
+__all__ = ['stacked_transits', 'transmission_spectrum', 'transit_residuals',
+           'ers_transmission_spectra']
 
 def stacked_transits(time, wavelength, flux, variance, colors,
                      centers=np.flip(np.linspace(0.85, 2.55, 15)),
@@ -182,7 +183,10 @@ def ers_transmission_spectra(table, order, color, label, ax, alpha=0.4, lw=3,
     return
 
 def transit_residuals(time, flux, flux_err, residuals, residuals_err, color,
-                      model=None, ax=None, size="20%", pad=0, index1=0, index2=0):
+                      model=None, ax=None, size="20%", pad=0, index1=0,
+                      index2=0, resid_lims=[-1000,1000], xlim=[-3,3],
+                      lc_lims=[0.975, 1.001], labelx=False,
+                      xlabel=None):
     """
     Helper function to create subplot with a transit and the residuals
     underneath.
@@ -228,14 +232,17 @@ def transit_residuals(time, flux, flux_err, residuals, residuals_err, color,
     ax.figure.add_axes(ax2)
 
     ax.errorbar(time, flux, yerr=flux_err, marker='.', linestyle='',
-                color=color_dict[key])
-    ax.plot(time, model, 'k', zorder=3)
+                color=color)
+
+    if model is not None:
+        ax.plot(time, model, 'k', zorder=3)
+
     ax2.errorbar(time, residuals, yerr=residuals_err,
-                 marker='.', linestyle='', color=color_dict[key])
-    ax.set_xticks([])
+                 marker='.', linestyle='', color=color)
 
     if index1==0:
-        ax2.set_xticklabels([])
+        if labelx == False:
+            ax2.set_xticklabels([])
         if index2==0:
             ax2.set_ylabel('Residuals', fontsize=16)
     if index2 > 0:
@@ -245,6 +252,7 @@ def transit_residuals(time, flux, flux_err, residuals, residuals_err, color,
     if index1==1 and index2==2:
         ax2.set_xlabel('Time from Mid-Transit [hrs]')
 
+    ax.set_xticks([])
     ax2.set_ylim(resid_lims)
     ax.set_ylim(lc_lims)
     ax.set_xlim(xlim)
