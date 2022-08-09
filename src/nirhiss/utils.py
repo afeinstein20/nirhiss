@@ -3,8 +3,8 @@ from tqdm import tqdm
 from astropy.table import Table
 #import transitspectroscopy as ts
 
-__all__ = ['scaling_image_regions', 'exotep_to_ers_format', 'chromatic_writer']#,
-           #'bin_at_resolution', 'get_MAD_sigma']
+__all__ = ['scaling_image_regions', 'exotep_to_ers_format', 'chromatic_writer',
+           'bin_at_resolution']#, 'get_MAD_sigma']
 
 def scaling_image_regions(integraions, bkg, x1, x2, y1, y2,
                           vals=np.linspace(0,10,500), test=True):
@@ -108,35 +108,51 @@ def exotep_to_ers_format(filename1, filename2, filename):
 
     tab.write(filename, format='csv', overwrite=True)
     return tab
+
+def bin_at_resolution(wavelengths, depths, R = 100, method = 'median'):
+    # Sort wavelengths from lowest to highest:
+    idx = np.argsort(wavelengths)
+
+    ww = wavelengths[idx]
+    dd = depths[idx]
+
+    # Prepare output arrays:
+    wout, dout, derrout = np.array([]), np.array([]), np.array([])
+    werrout = np.array([])
+
+    oncall = False
+
+    # Loop over all (ordered) wavelengths:
+    for i in range(len(ww)):
+
+        if not oncall:
+
+            # If we are in a given bin, initialize it:
+            current_wavs = np.array([ww[i]])
+            current_depths = np.array(dd[i])
+            oncall = True
+
+        else:
+            # On a given bin, append next wavelength/depth:
+            current_wavs = np.append(current_wavs, ww[i])
+            current_depths = np.append(current_depths, dd[i])
+
+            # Calculate current mean R:
+            current_R = np.mean(current_wavs) / np.abs(current_wavs[0] - current_wavs[-1])
+
+            # If the current set of wavs/depths is below or at the target resolution, stop and move to next bin:
+            if current_R <= R:
+
+                wout = np.append(wout, np.mean(current_wavs))
+                dout = np.append(dout, np.mean(current_depths))
+                derrout = np.append(derrout, np.sqrt(np.var(current_depths)) / np.sqrt(len(current_depths)))
+                werrout = np.append(werrout, np.abs(current_wavs[0] - current_wavs[-1]))
+
+                oncall = False
+
+    return wout, dout, derrout, werrout
+
 """
-def bin_at_resolution(wavelengths, depths, R=100, method='median'):
-
-    A wrapper for `transitspectroscopy.utils.bin_at_resoluion`.
-
-    Parameters
-    ----------
-    wavelengths : np.array
-        Array of wavelengths
-    depths : np.array
-        Array of depths at each wavelength.
-    R : int
-        Target resolution at which to bin (default is 100)
-    method : string
-        'mean' will calculate resolution via the mean --- 'median' via the
-        median resolution of all points in a bin.
-
-    Returns
-    -------
-    wout : np.array
-        Wavelength of the given bin at resolution R.
-    dout : np.array
-        Depth of the bin.
-    derrout : np.array
-        Error on depth of the bin.
-
-    #outputs = ts.utils.bin_at_resolution(wavelength, depths, R=R, method=method)
-    #return outputs[0], outputs[1], outputs[2]
-
 def get_MAD_sigma(x, median):
 
     Wrapper function for transitspectroscopy.utils.get_MAD_sigma to estimate

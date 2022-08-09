@@ -7,7 +7,7 @@ from astropy.table import Table
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-#from .utils import bin_at_resolution
+from .utils import bin_at_resolution
 
 __all__ = ['stacked_transits', 'transmission_spectrum', 'transit_residuals',
            'ers_transmission_spectra']
@@ -162,6 +162,8 @@ def ers_transmission_spectra(table, order, color, label, ax, alpha=0.4, lw=3,
         out = bin_at_resolution(table['wave'][q], table['dppm'][q], R=R)
     else:
         out = [table['wave'], table['dppm'], table['dppm_err']]
+
+    print(label, len(out[0]), R)
 
     # Plots the spectrum
     if plot_type == 'fill_between':
