@@ -7,7 +7,7 @@ from astropy.table import Table
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from .utils import bin_at_resolution
+#from .utils import bin_at_resolution
 
 __all__ = ['stacked_transits', 'transmission_spectrum', 'transit_residuals',
            'ers_transmission_spectra']

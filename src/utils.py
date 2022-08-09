@@ -1,10 +1,10 @@
 import numpy as np
 from tqdm import tqdm
 from astropy.table import Table
-import transitspectroscopy as ts
+#import transitspectroscopy as ts
 
-__all__ = ['scaling_image_regions', 'bin_at_resolution', 'chromatic_writer',
-           'exotep_to_ers_format', 'get_MAD_sigma']
+__all__ = ['scaling_image_regions', 'exotep_to_ers_format', 'chromatic_writer']#,
+           #'bin_at_resolution', 'get_MAD_sigma']
 
 def scaling_image_regions(integraions, bkg, x1, x2, y1, y2,
                           vals=np.linspace(0,10,500), test=True):
@@ -108,9 +108,9 @@ def exotep_to_ers_format(filename1, filename2, filename):
 
     tab.write(filename, format='csv', overwrite=True)
     return tab
-
+"""
 def bin_at_resolution(wavelengths, depths, R=100, method='median'):
-    """
+
     A wrapper for `transitspectroscopy.utils.bin_at_resoluion`.
 
     Parameters
@@ -133,12 +133,12 @@ def bin_at_resolution(wavelengths, depths, R=100, method='median'):
         Depth of the bin.
     derrout : np.array
         Error on depth of the bin.
-    """
-    outputs = ts.utils.bin_at_resolution(wavelength, depths, R=R, method=method)
-    return outputs[0], outputs[1], outputs[2]
+
+    #outputs = ts.utils.bin_at_resolution(wavelength, depths, R=R, method=method)
+    #return outputs[0], outputs[1], outputs[2]
 
 def get_MAD_sigma(x, median):
-    """
+
     Wrapper function for transitspectroscopy.utils.get_MAD_sigma to estimate
     the noise properties of the light curves.
 
@@ -146,5 +146,7 @@ def get_MAD_sigma(x, median):
     ----------
     x : np.ndarray
     median : np.ndarray
-    """
-    mad = ts.utils.get_mad_sigma(x, median)
+
+    #mad = ts.utils.get_mad_sigma(x, median)
+    #return mad
+"""

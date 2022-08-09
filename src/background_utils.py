@@ -12,7 +12,7 @@ import os
 
 from . import clipping
 
-__all__ = ['fitbg3', 'bkg_sub', 'simple_bkg']
+__all__ = ['bkg_sub', 'simple_bkg']
 
 def simple_bkg(data, mask, window_length=7, polyorder=2, mode='nearest'):
     """
