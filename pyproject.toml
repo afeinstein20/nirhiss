@@ -1,13 +1,16 @@
-# pyproject.toml
 [build-system]
-requires      = ["setuptools>=61.0.0", "wheel"]
+requires = ["setuptools>=42", "wheel", "cython", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "src/nirhiss/version.py"
 
 [project]
 name = "nirhiss"
 version = "0.0.1rc1"
 description = "JWST NIRISS reduction routine"
 readme = "README.md"
+url = "https://github.com/afeinstein20/nirhiss"
 authors = [{ name = "nirHiss", email = "afeinstein@uchicago.edu" }]
 license = { file = "LICENSE.md" }
 classifiers = [
@@ -23,11 +26,5 @@ dependencies = [
 ]
 requires-python = ">=3.8"
 
-[project.optional-dependencies]
-dev = ["black", "bumpver", "isort", "pip-tools", "pytest"]
-
 [project.urls]
-Homepage = "https://github.com/afeisntein20/nirhiss"
-
-[project.scripts]
-realpython = "reader.__main__:main"
+Homepage = "https://adina.feinste.in/nirhiss"
