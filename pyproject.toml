@@ -2,15 +2,12 @@
 requires = ["setuptools>=42", "wheel", "cython", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools_scm]
-write_to = "src/nirhiss/version.py"
-
 [project]
 name = "nirhiss"
-version = "0.0.1rc1"
+version = "0.0.1rc2"
 description = "JWST NIRISS reduction routine"
 readme = "README.md"
-url = "https://github.com/afeinstein20/nirhiss"
+url = "https://adina.feinste.in/nirHiss"
 authors = [{ name = "nirHiss", email = "afeinstein@uchicago.edu" }]
 license = { file = "LICENSE.md" }
 classifiers = [

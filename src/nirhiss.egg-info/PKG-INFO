@@ -1,0 +1,28 @@
+Metadata-Version: 2.1
+Name: nirhiss
+Version: 0.0.1rc2
+Summary: For reducing JWST NIRISS observations
+Home-page: http://github.com/afeinstein20/nirhiss
+Author: Adina D. Feinstein
+Author-email: adina.d.feinstein@gmail.com
+License: MIT
+Project-URL: Bug Tracker, https://github.com/afeinstein20/nirhiss/issues
+Project-URL: Source Code, https://github.com/afeinstein20/nirhiss
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3.7
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+
+
+nirHiss is a python package to reduce JWST NIRISS observations.
+
+Read the documentation at https://adina.feinste.in/nirHiss
+
+Changes to v0.0.1rc1 (2022-08-06):
+*
+
+

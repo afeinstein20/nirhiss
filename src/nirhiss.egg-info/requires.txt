@@ -1,0 +1,13 @@
+h5py
+tqdm
+numpy
+scipy
+eureka
+juliet
+corner
+ccdproc
+astropy
+skimage
+photutils
+matplotlib
+transitspectroscopy

@@ -7,7 +7,7 @@ import os
 import sys
 from setuptools import setup
 
-sys.path.insert(0, "nirhiss")
+sys.path.insert(0, "src/nirhiss")
 from version import __version__
 
 
@@ -17,7 +17,7 @@ nirHiss is a python package to reduce JWST NIRISS observations.
 
 Read the documentation at https://adina.feinste.in/nirHiss
 
-Changes to v0.0.1 (2022-08-06):
+Changes to v0.0.1rc1 (2022-08-06):
 *
 """
 
