@@ -45,10 +45,8 @@ def stacked_transits(time, wavelength, flux, variance, colors,
                     marker='.', label=np.round(center,2))
         grid[i] = spec
 
-
-
         if text:
-            ax.text(x=time[time_ind], y=np.nanmedian(spec[210:])-offset+0.001,
+            ax.text(x=time[time_ind], y=np.nanmedian(spec[210:])-offset,
                     s='{} $\mu$m'.format(np.round(center,2)),
                     fontsize=16)
 
