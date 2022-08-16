@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no">
+<link href="assets/images/favicon.ico" rel="icon" />
+<title>nirHiss</title>
+<meta name="description" content="nirHiss Documentation">
+<meta name="author" content="adina.feinste.in">
+
+<!-- Stylesheet
+============================== -->
+<!-- Bootstrap -->
+<link rel="stylesheet" type="text/css" href="assets/vendor/bootstrap/css/bootstrap.min.css" />
+<!-- Font Awesome Icon -->
+<link rel="stylesheet" type="text/css" href="assets/vendor/font-awesome/css/all.min.css" />
+<!-- Magnific Popup -->
+<link rel="stylesheet" type="text/css" href="assets/vendor/magnific-popup/magnific-popup.min.css" />
+<!-- Highlight Syntax -->
+<link rel="stylesheet" type="text/css" href="assets/vendor/highlight.js/styles/github.css" />
+<!-- Custom Stylesheet -->
+<link rel="stylesheet" type="text/css" href="assets/css/stylesheet.css" />
+<!-- Custom Color -->
+<link rel="stylesheet" type="text/css" href="assets/css/color-teal.css" />
+</head>
+
+<body data-spy="scroll" data-target=".idocs-navigation" data-offset="125">
+
+<!-- Preloader -->
+<div class="preloader">
+  <div class="lds-ellipsis">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+</div>
+<!-- Preloader End -->
+
+<!-- Document Wrapper
+=============================== -->
+<div id="main-wrapper">
+
+  <!-- Header
+  ============================ -->
+  <header id="header" class="sticky-top">
+    <!-- Navbar -->
+    <nav class="primary-menu navbar navbar-expand-lg bg-dark navbar-text-light navbar-dropdown-dark border-0">
+      <div class="container-fluid">
+        <!-- Sidebar Toggler -->
+		<button id="sidebarCollapse" class="navbar-toggler d-block d-md-none"
+    type="button"><span></span><span class="w-75"></span><span class="w-50"></span></button>
+
+		<!-- Logo -->
+        <a class="logo ml-md-3" href="index.html" title="nirHiss Documentation">
+          <img src="figures/snek.png" width="80" alt="snek-friend"/> </a>
+		<span class="text-2 text-light ml-2">v0.0.1</span>
+        <!-- Logo End -->
+
+		<!-- Navbar Toggler -->
+		<button class="navbar-toggler ml-auto" type="button" data-toggle="collapse"
+    data-target="#header-nav"><span></span><span></span><span></span></button>
+
+		<div id="header-nav" class="collapse navbar-collapse justify-content-end">
+
+        </div>
+        <ul class="social-icons social-icons-sm ml-lg-2 mr-2">
+          <li class="social-icons-twitter"><a data-toggle="tooltip" href="http://www.twitter.com/afeinstein20/" target="_blank" title="" data-original-title="Twitter"><i class="fab fa-twitter"></i></a></li>
+          <li class="social-icons-github"><a data-toggle="tooltip" href="http://www.github.com/afeinstein20/nirhiss" target="_blank" title="" data-original-title="GitHub"><i class="fab fa-github"></i></a></li>
+        </ul>
+      </div>
+    </nav>
+    <!-- Navbar End -->
+  </header>
+  <!-- Header End -->
+
+  <!-- Content
+  ============================ -->
+  <div id="content" role="main">
+
+	<!-- Sidebar Navigation
+	============================ -->
+	<div class="idocs-navigation bg-light">
+      <ul class="nav flex-column ">
+        <li class="nav-item"><a class="nav-link active" href="#idocs_start">Getting Started</a>
+          <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="#idocs_installation">Installation</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_data_products">Data Products</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_video">Tutorial Video</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_cite">Citing nirHiss</a></li>
+          </ul>
+        </li>
+
+<!--<li class="nav-item"><a class="nav-link" href="#idocs_demos">Demo Notebooks</a>
+			<ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="#idocs_quickstart">Quickstart</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_tips">Tips & Tricks</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_viz">Visualization & Crossmatch</a></li>
+          </ul>
+		</li>-->
+
+		<li class="nav-item"><a class="nav-link" href="#idocs_faq">FAQ</a></li>
+
+    <li class="nav-item"><a class="nav-link" href="#idocs_api">API</a>
+      <ul class="nav flex-column">
+        <li class="nav-item"><a class="nav-link" href="#example">nirhiss.example</a></li>
+      </ul></li>
+
+		<li class="nav-item"><a class="nav-link" href="#idocs_changelog">Changelog</a>
+			<ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="#v0-0-1">v1.0.1</a></li>
+          </ul>
+		</li>
+    </ul>
+    </div>
+
+    <!-- Docs Content
+	============================ -->
+    <div class="idocs-content">
+      <div class="container">
+
+        <!-- Getting Started
+		============================ -->
+        <section id="idocs_start">
+        <h1>nirHiss Documentation</h1>
+		<hr>
+		<div class="row">
+			<div class="col-sm-6 col-lg-4">
+				<ul class="list-unstyled">
+					<li><strong>Version:</strong> 0.0.1</li>
+					<li><strong>Author:</strong> <a href="http://www.adina.feinste.in"
+            target="_blank">Adina Feinstein</a></li>
+				</ul>
+			</div>
+			<div class="col-sm-6 col-lg-4">
+				<ul class="list-unstyled">
+					<li><strong class="font-weight-700">Created:</strong> 9 August, 2022</li>
+					<li><strong>Update:</strong> 9 August, 2022</li>
+				</ul>
+			</div>
+		</div>
+        <p class="alert alert-info">If you have any questions that are beyond
+          the scope of this help file, Please feel free to open a
+          <a href="https://github.com/afeinstein20/nirHiss/issues" target="_blank">GitHub Issue</a>.
+        </p>
+
+        <p>
+          The purpose of <code>nirHiss</code> is to extract 1D spectra from JWST
+          Near-Infrared Imager and Slitless Spectrograph (NIRISS) instrument.
+        </p>
+        </section>
+
+
+		<hr class="divider">
+
+        <!-- Installation
+		============================ -->
+        <section id="idocs_installation">
+          <h2>Installation</h2>
+          <p class="lead">We have two primary ways to install <code>nirHiss</code></p>
+          <ol>
+            <li>Install through the Python Package Index (PyPI)<br><code>pip install nirhiss</code></li>
+            <li>Install the developer's version on GitHub:<br>
+              <code>git clone https://github.com/afeinstein20/nirHiss<br>
+                cd nirHiss<br>
+                python setup.py install</code>
+              </li>
+          </ol>
+
+        </section>
+
+		<hr class="divider">
+
+        <!-- HTML Structure
+		============================ -->
+    <section id="idocs_data_products">
+          <h2>Data Products</h2>
+
+          <p>
+            nirHiss saves all outputs as a FITS file.
+          </p>
+
+        </section>
+
+    <hr class="divider">
+
+
+    <section id="idocs_cite">
+      <h2>Citing nirHiss & dependencies</h2>
+      <p>If you find <code>nirHiss</code> useful for your work, please cite the
+        following works:
+        <ul>
+          <li>Primary <code>nirHiss</code> publication:
+            <a href="" target="_blank">Feinstein et al. 2022, in prep.</a>
+          </li>
+          <li>Eureka!:
+            <a href="https://ui.adsabs.harvard.edu/abs/2022arXiv220703585B/abstract" target="_blank">Bell et al. (2022)</a>
+          </li>
+        </ul>
+      </p>
+
+    </section>
+
+		<hr class="divider">
+
+
+		<!-- FAQ
+		============================ -->
+		<section id="idocs_faq">
+          <h2>FAQ</h2>
+          <p class="text-4">Here are some frequently asked questions (FAQs)
+            and their answers!</p>
+
+		  <div class="row">
+          <div class="col-lg-12">
+            <div class="accordion accordion-alterate arrow-right" id="popularTopics">
+
+              <div class="card">
+                <div class="card-header" id="heading1">
+                  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse"
+                    data-target="#collapse1" aria-expanded="false" aria-controls="collapse1">
+                    How does nirHiss work under the hood?</a> </h5>
+                </div>
+                <div id="collapse1" class="collapse" aria-labelledby="heading1" data-parent="#popularTopics">
+                  <div class="card-body">
+                    When you query an object, <code>nirHiss</code> performs the following steps:
+                    <ol>
+                      <li>Determines in which sectors this target was observed.</li>
+                      <li>Locates the object on TESS's many cameras/chips.</li>
+                      <li>Downloads a time series of "postcards" containing TESS
+                        data for the object and its immediate surroundings.</li>
+                      <li>Creates and stores a target pixel file (TPF) of the object.</li>
+                      <li>Traces centroid shifts for the object across the time series.</li>
+                      <li>Chooses an optimal pixel aperture for photometry.</li>
+                      <li>Creates a light curve using the chosen aperture and centroid trace.</li>
+                      <li>Performs basic systematics corrections on the light curve and stores it.</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        </section>
+
+		<hr class="divider">
+
+    <!-- FAQ
+    ============================ -->
+    <section id="idocs_api">
+      <h2>API</h2>
+
+      <div class="section" id="api">
+
+      <dl class="py class" id="example">
+      <dt id="nirHiss.ffi">
+      <em class="property">class </em><code class="sig-prename descclassname">nirHiss.</code><code class="sig-name descname">ffi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sector</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">camera</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">chip</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nirHiss.ffi" title="Permalink to this definition">¶</a></dt>
+      <dd><dl class="simple">
+      <dt>This class allows the user to download all full-frame images for a given sector,</dt><dd><p>camera, and chip. It also allows the user to create their own pointing model
+      based on each cadence for a given combination of sector, camera, and chip.</p>
+      </dd>
+      <dt>No individual user should have to download all of the full-frame images because</dt><dd><p>stacked postcards will be available for the user to download from MAST.</p>
+      </dd>
+      </dl>
+      <dl class="field-list simple">
+      <dt class="field-odd">Parameters</dt>
+      <dd class="field-odd"><ul class="simple">
+      <li><p><strong>sector</strong> (<em>int</em><em>, </em><em>optional</em>) – </p></li>
+      <li><p><strong>camera</strong> (<em>int</em><em>, </em><em>optional</em>) – </p></li>
+      <li><p><strong>chip</strong> (<em>int</em><em>, </em><em>optional</em>) – </p></li>
+      </ul>
+      </dd>
+      </dl>
+      <dl class="py method">
+      <dt id="nirHiss.ffi.build_pointing_model">
+      <code class="sig-name descname">build_pointing_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pos_predicted</span></em>, <em class="sig-param"><span class="n">pos_inferred</span></em>, <em class="sig-param"><span class="n">outlier_removal</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nirHiss.ffi.build_pointing_model" title="Permalink to this definition">¶</a></dt>
+      <dd><dl class="simple">
+      <dt>Builds an affine transformation to correct the positions of stars</dt><dd><p>from a possibly incorrect WCS.</p>
+      </dd>
+      </dl>
+      <dl class="field-list simple">
+      <dt class="field-odd">Parameters</dt>
+      <dd class="field-odd"><ul class="simple">
+      <li><p><strong>pos_predicted</strong> (<em>tuple</em>) – Positions taken straight from the WCS; [[x,y],[x,y],…] format.</p></li>
+      <li><p><strong>pos_inferred</strong> (<em>tuple</em>) – Positions taken using any centroiding method; [[x,y],[x,y],…] format.</p></li>
+      <li><p><strong>outlier_removal</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to clip 1-sigma outlier frames. Default <cite>False</cite>.</p></li>
+      </ul>
+      </dd>
+      <dt class="field-even">Returns</dt>
+      <dd class="field-even"><p><strong>xhat</strong> – (3, 3) affine transformation matrix between WCS positions
+      and inferred positions.</p>
+      </dd>
+      <dt class="field-odd">Return type</dt>
+      <dd class="field-odd"><p>np.ndarray</p>
+      </dd>
+      </dl>
+      </dd></dl>
+
+      <dl class="py method">
+      <dt id="nirHiss.ffi.sort_by_date">
+      <code class="sig-name descname">sort_by_date</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nirHiss.ffi.sort_by_date" title="Permalink to this definition">¶</a></dt>
+      <dd><p>Sorts FITS files by start date of observation.</p>
+      </dd></dl>
+
+      </dd></dl>
+
+      <dl class="py function" id="other">
+      <dt id="nirHiss.use_pointing_model">
+      <code class="sig-prename descclassname">nirHiss.</code><code class="sig-name descname">use_pointing_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coords</span></em>, <em class="sig-param"><span class="n">pointing_model</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nirHiss.use_pointing_model" title="Permalink to this definition">¶</a></dt>
+      <dd><p>Applies pointing model to correct the position of star(s) on postcard.</p>
+      <dl class="field-list simple">
+      <dt class="field-odd">Parameters</dt>
+      <dd class="field-odd"><ul class="simple">
+      <li><p><strong>coords</strong> (<em>tuple</em>) – (<cite>x</cite>, <cite>y</cite>) position of star(s).</p></li>
+      <li><p><strong>pointing_model</strong> (<em>astropy.table.Table</em>) – pointing_model for ONE cadence.</p></li>
+      </ul>
+      </dd>
+      <dt class="field-even">Returns</dt>
+      <dd class="field-even"><p><strong>coords</strong> – Corrected position of star(s).</p>
+      </dd>
+      <dt class="field-odd">Return type</dt>
+      <dd class="field-odd"><p>tuple</p>
+      </dd>
+      </dl>
+      </dd></dl>
+
+
+    </section>
+    <hr class="divider">
+
+        <!-- Changelog
+		============================ -->
+
+    <section id="idocs_changelog">
+      <h2>Changelog</h2>
+      <p class="text-4">See what's new added, changed, fixed, improved or updated in the latest versions. </p>
+
+      <h3 id="v0-0-1">Version 0.0.1 <small class="text-muted">(9 August, 2022)</small></h3>
+      <ul class="changelog">
+        <li><span class="badge badge-success">Added</span>
+          Ability to use local postcards
+        </li>
+        <li><span class="badge badge-info">Added</span>
+          Addition of <code>nirHiss.Update()</code> for automatic sector updates
+        </li>
+        <li><span class="badge badge-info">Updated</span>
+          Significant speedups when TIC, Coords, and a Gaia ID are all provided
+        </li>
+      </ul>
+
+		  <hr class="divider">
+
+        </section>
+
+      </div>
+    </div>
+
+  </div>
+  <!-- Content end -->
+
+  <!-- Footer
+  ============================ -->
+  <footer id="footer" class="section bg-dark footer-text-light">
+    <div class="container">
+      <ul class="social-icons social-icons-lg social-icons-muted justify-content-center mb-3">
+        <li><a data-toggle="tooltip" href="https://twitter.com/afeinstein20/" target="_blank" title="" data-original-title="Twitter"><i class="fab fa-twitter"></i></a></li>
+        <li><a data-toggle="tooltip" href="http://www.github.com/afeinstein20/nirHiss" target="_blank" title="" data-original-title="GitHub"><i class="fab fa-github"></i></a></li>
+      </ul>
+      <p class="text-center">Copyright &copy; 2020 <a href="http://www.harnishdesign.net/idocs-one-page-documentation-html-template/">iDocs</a>. All Rights Reserved.</p>
+    </div>
+  </footer>
+  <!-- Footer end -->
+
+</div>
+<!-- Document Wrapper end -->
+
+<!-- Back To Top -->
+<a id="back-to-top" data-toggle="tooltip" title="Back to Top" href="javascript:void(0)"><i class="fa fa-chevron-up"></i></a>
+
+<!-- JavaScript
+============================ -->
+<script src="assets/vendor/jquery/jquery.min.js"></script>
+<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- Highlight JS -->
+<script src="assets/vendor/highlight.js/highlight.min.js"></script>
+<!-- Easing -->
+<script src="assets/vendor/jquery.easing/jquery.easing.min.js"></script>
+<!-- Magnific Popup -->
+<script src="assets/vendor/magnific-popup/jquery.magnific-popup.min.js"></script>
+<!-- Custom Script -->
+<script src="assets/js/theme.js"></script>
+</body>
+</html>
