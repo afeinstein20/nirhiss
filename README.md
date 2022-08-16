@@ -13,7 +13,7 @@ For installation, you can grab the latest release from PyPI by doing:
 or you can the latest development version by doing:
 
         git clone https://github.com/afeinstein20/nirhiss
-        cd eleanor
+        cd nirhiss
         python setup.py install
 
 ADF_extracted_stellar_spectra
