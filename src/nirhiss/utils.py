@@ -4,7 +4,7 @@ from astropy.table import Table
 #import transitspectroscopy as ts
 
 __all__ = ['scaling_image_regions', 'exotep_to_ers_format', 'chromatic_writer',
-           'bin_at_resolution']#, 'get_MAD_sigma']
+           'bin_at_resolution', 'get_MAD_sigma']
 
 def scaling_image_regions(integraions, bkg, x1, x2, y1, y2,
                           vals=np.linspace(0,10,500), test=True):
@@ -109,12 +109,14 @@ def exotep_to_ers_format(filename1, filename2, filename):
     tab.write(filename, format='csv', overwrite=True)
     return tab
 
-def bin_at_resolution(wavelengths, depths, R = 100, method = 'median'):
+def bin_at_resolution(wavelengths, depths, depth_error,
+                      R = 100, method = 'median'):
     # Sort wavelengths from lowest to highest:
     idx = np.argsort(wavelengths)
 
     ww = wavelengths[idx]
     dd = depths[idx]
+    de = depth_error[idx]
 
     # Prepare output arrays:
     wout, dout, derrout = np.array([]), np.array([]), np.array([])
@@ -130,12 +132,14 @@ def bin_at_resolution(wavelengths, depths, R = 100, method = 'median'):
             # If we are in a given bin, initialize it:
             current_wavs = np.array([ww[i]])
             current_depths = np.array(dd[i])
+            current_errors = np.array(de[i])
             oncall = True
 
         else:
             # On a given bin, append next wavelength/depth:
             current_wavs = np.append(current_wavs, ww[i])
             current_depths = np.append(current_depths, dd[i])
+            current_errors = np.append(current_errors, de[i])
 
             # Calculate current mean R:
             current_R = np.mean(current_wavs) / np.abs(current_wavs[0] - current_wavs[-1])
@@ -145,16 +149,19 @@ def bin_at_resolution(wavelengths, depths, R = 100, method = 'median'):
 
                 wout = np.append(wout, np.mean(current_wavs))
                 dout = np.append(dout, np.mean(current_depths))
-                derrout = np.append(derrout, np.sqrt(np.var(current_depths)) / np.sqrt(len(current_depths)))
+
+                derrout = np.append(derrout, np.sqrt(np.nansum(current_errors)/len(current_errors)))
+
+                #derrout = np.append(derrout, np.sqrt(np.var(current_depths)) / np.sqrt(len(current_depths)))
                 werrout = np.append(werrout, np.abs(current_wavs[0] - current_wavs[-1]))
 
                 oncall = False
 
     return wout, dout, derrout, werrout
 
-"""
-def get_MAD_sigma(x, median):
 
+def get_MAD_sigma(x, median):
+    """
     Wrapper function for transitspectroscopy.utils.get_MAD_sigma to estimate
     the noise properties of the light curves.
 
@@ -162,7 +169,7 @@ def get_MAD_sigma(x, median):
     ----------
     x : np.ndarray
     median : np.ndarray
+    """
+    mad = np.nanmedian( np.abs ( x - median ) )
 
-    #mad = ts.utils.get_mad_sigma(x, median)
-    #return mad
-"""
+    return 1.4826*mad

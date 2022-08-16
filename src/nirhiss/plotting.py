@@ -10,7 +10,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from .utils import bin_at_resolution
 
 __all__ = ['stacked_transits', 'transmission_spectrum', 'transit_residuals',
-           'ers_transmission_spectra']
+           'mission_spectra']
 
 def stacked_transits(time, wavelength, flux, variance, colors,
                      centers=np.flip(np.linspace(0.85, 2.55, 15)),
@@ -157,7 +157,8 @@ def ers_transmission_spectra(table, order, color, label, ax, alpha=0.4, lw=3,
 
     # Bins the spectrum if binned == True
     if binned:
-        out = bin_at_resolution(table['wave'][q], table['dppm'][q], R=R)
+        out = bin_at_resolution(table['wave'][q], table['dppm'][q],
+                                table['dppm_err'][q], R=R)
     else:
         out = [table['wave'], table['dppm'], table['dppm_err']]
 
@@ -185,8 +186,8 @@ def ers_transmission_spectra(table, order, color, label, ax, alpha=0.4, lw=3,
 def transit_residuals(time, flux, flux_err, residuals, residuals_err, color,
                       model=None, ax=None, size="20%", pad=0, index1=0,
                       index2=0, resid_lims=[-1000,1000], xlim=[-3,3],
-                      lc_lims=[0.975, 1.001], labelx=False,
-                      xlabel=None):
+                      lc_lims=[0.975, 1.001], labelx=False, labelxticks=False,
+                      xlabel=None, labelyticks=False):
     """
     Helper function to create subplot with a transit and the residuals
     underneath.
@@ -240,17 +241,21 @@ def transit_residuals(time, flux, flux_err, residuals, residuals_err, color,
     ax2.errorbar(time, residuals, yerr=residuals_err,
                  marker='.', linestyle='', color=color)
 
-    if index1==0:
-        if labelx == False:
-            ax2.set_xticklabels([])
-        if index2==0:
-            ax2.set_ylabel('Residuals', fontsize=16)
+    #if index1==0:
+    if labelxticks == False:
+        ax2.set_xticklabels([])
+    if labelyticks == False:
+        ax.set_yticklabels([])
+
+    if index2==0:
+        ax2.set_ylabel('Residuals', fontsize=20)
+
     if index2 > 0:
         ax2.set_yticklabels([])
     if index1==1 and index2==0:
-        ax2.set_ylabel('Residuals', fontsize=16)
-    if index1==1 and index2==2:
-        ax2.set_xlabel('Time from Mid-Transit [hrs]')
+        ax2.set_ylabel('Residuals', fontsize=20)
+    if labelx:
+        ax2.set_xlabel('Time from Mid-Transit [hrs]', fontsize=24)
 
     ax.set_xticks([])
     ax2.set_ylim(resid_lims)
