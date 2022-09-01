@@ -109,7 +109,7 @@ def exotep_to_ers_format(filename1, filename2, filename):
     tab.write(filename, format='csv', overwrite=True)
     return tab
 
-def bin_at_resolution(wavelengths, depths, depth_error,
+def bin_at_resolution(wavelengths, depths, depth_error, wave_error,
                       R = 100, method = 'median'):
     # Sort wavelengths from lowest to highest:
     idx = np.argsort(wavelengths)
@@ -117,6 +117,7 @@ def bin_at_resolution(wavelengths, depths, depth_error,
     ww = wavelengths[idx]
     dd = depths[idx]
     de = depth_error[idx]
+    we = wave_error[idx]
 
     # Prepare output arrays:
     wout, dout, derrout = np.array([]), np.array([]), np.array([])
@@ -133,6 +134,7 @@ def bin_at_resolution(wavelengths, depths, depth_error,
             current_wavs = np.array([ww[i]])
             current_depths = np.array(dd[i])
             current_errors = np.array(de[i])
+            current_werrs = np.array(we[i])
             oncall = True
 
         else:
@@ -140,6 +142,7 @@ def bin_at_resolution(wavelengths, depths, depth_error,
             current_wavs = np.append(current_wavs, ww[i])
             current_depths = np.append(current_depths, dd[i])
             current_errors = np.append(current_errors, de[i])
+            current_werrs = np.append(current_werrs, we[i])
 
             # Calculate current mean R:
             current_R = np.mean(current_wavs) / np.abs(current_wavs[0] - current_wavs[-1])
@@ -150,10 +153,13 @@ def bin_at_resolution(wavelengths, depths, depth_error,
                 wout = np.append(wout, np.mean(current_wavs))
                 dout = np.append(dout, np.mean(current_depths))
 
-                derrout = np.append(derrout, np.sqrt(np.nansum(current_errors)/len(current_errors)))
+                derrout = np.append(derrout, np.sqrt(np.nansum(current_errors**2)/len(current_errors)))
 
                 #derrout = np.append(derrout, np.sqrt(np.var(current_depths)) / np.sqrt(len(current_depths)))
-                werrout = np.append(werrout, np.abs(current_wavs[0] - current_wavs[-1]))
+
+                wmax = current_wavs[0]-current_werrs[0]
+                wmin = current_wavs[-1]+current_werrs[-1]
+                werrout = np.append(werrout, np.abs(wmax - wmin)/2)
 
                 oncall = False
 
