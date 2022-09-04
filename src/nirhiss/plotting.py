@@ -162,8 +162,6 @@ def ers_transmission_spectra(table, order, color, label, ax, alpha=0.4, lw=3,
     else:
         out = [table['wave'], table['dppm'], table['dppm_err']]
 
-    print(label, len(out[0]), R)
-
     # Plots the spectrum
     if plot_type == 'fill_between':
         plot_type_fill_between(out[0], out[1], out[2], ax,
