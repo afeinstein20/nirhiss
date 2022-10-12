@@ -153,7 +153,11 @@ def bin_at_resolution(wavelengths, depths, depth_error, wave_error,
                 wout = np.append(wout, np.mean(current_wavs))
                 dout = np.append(dout, np.mean(current_depths))
 
-                derrout = np.append(derrout, np.sqrt(np.nansum(current_errors**2)/len(current_errors)))
+                #derrout = np.append(derrout, np.sqrt(np.nansum(current_errors**2)/len(current_errors)))
+
+                # np.sqrt(2) * hst['Rp/R*'] * hst['Rp/R* error'] * 100
+                derrout = np.append(derrout,
+                                    np.sqrt(np.nansum((current_errors)**2))/len(current_errors))
 
                 #derrout = np.append(derrout, np.sqrt(np.var(current_depths)) / np.sqrt(len(current_depths)))
 
