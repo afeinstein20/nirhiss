@@ -7,7 +7,7 @@ from astropy import units
 import matplotlib.pyplot as plt
 from astropy.table import Table, Column
 from matplotlib.gridspec import GridSpec
-from matplotlib.patches import Circle, Rectangle
+from matplotlib.patches import Circle, Rectangle, Arrow
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 __all__ = ['get_rainbow', 'gauplot', 'batman_transit', 'setup_gridspec',
@@ -104,10 +104,10 @@ def setup_gridspec():
     # Create the gridspec environment
     fig = plt.figure(tight_layout=True, figsize=(14,8))
     fig.set_facecolor('w')
-    gs = GridSpec(2, 3, width_ratios=[1.3,3.2,1.3], height_ratios=[1,0.6])
+    gs = GridSpec(2, 3, width_ratios=[1.3,1.3,3.2], height_ratios=[1,0.6])
 
-    text_ax = fig.add_subplot(gs[0,0])
-    ax = fig.add_subplot(gs[0, 1])
+    text_ax = fig.add_subplot(gs[0,0:2])
+    ax = fig.add_subplot(gs[0, 2])
     ax2 = fig.add_subplot(gs[1, 0:])
     return fig, gs, text_ax, ax, ax2
 
@@ -132,17 +132,20 @@ def set_limits_labels(ax2, text_ax, t):
     """ Sets the limits and labels for the passed in subplots.
     """
     ax2.set_xlim(0.55, 2.9)
-    ax2.set_ylim(0.143, 0.1485)
+    ax2.set_ylim(2, 2.3)
     ax2.set_xlabel('wavelength [$\mu$m]')
-    ax2.set_ylabel('planet-to-star radius ratio', fontsize=16)
+    ax2.set_ylabel('amount of light\nblocked by the\nplanet [%]', fontsize=16)
 
-    text_ax.set_xlim(t[0], t[-1])
+    text_ax.set_xlabel('time [hours]')
+
+    text_ax.set_xlim(t[0], t[-1]+0.05)
+    text_ax.set_xticks([t[0], 0, t[-1]])
     text_ax.set_ylim(0.975, 1.01)
     return
 
 def label_rp(ax):
-    ax.hlines(500, 990, 1150, lw=4, color='pink')
-    ax.text(s='$R_{planet}$', x=1160, y=540, color='k')
+    ax.hlines(500, 1545, 1690, lw=4, color='pink')
+    ax.text(s='$R_{planet}$', x=1500, y=680, color='k')
     return
 
 def label_rs(ax):
@@ -152,24 +155,56 @@ def label_rs(ax):
 
 def label_depth(text_ax):
     text_ax.vlines(0, 0.9788, 1, color='xkcd:lilac', lw=3, zorder=5)
-    text_ax.hlines(1, -0.01, 0.01, color='xkcd:lilac', lw=3, zorder=5)
-    text_ax.hlines(0.9788, -0.01, 0.01, color='xkcd:lilac', lw=3, zorder=5)
+    text_ax.hlines(1, -0.005, 0.005, color='xkcd:lilac', lw=3, zorder=5)
+    text_ax.hlines(0.9788, -0.005, 0.005, color='xkcd:lilac', lw=3, zorder=5)
+
+    text_ax.text(s='amount of\nlight\nblocked\nby planet = ',
+                 x=-0.04, y=0.992, fontsize=14)
 
     text_ax.text(s=r'$\left( \frac{R_{planet}}{R_{star}} \right)^2$',
-                 x=0.01, y=0.99,
-                 fontsize=24)
+                 x=0.002, y=0.992,
+                 fontsize=22)
     return text_ax
 
-def label_spec(ax2, wave, rprs):
+def label_spec(ax2, wave, dppm):
     ax2.text(s=r'$\left( \frac{R_{planet}}{R_{star}} \right)$',
              x=wave+0.03,
-             y=rprs-0.0003,
+             y=dppm-0.0003,
              fontsize=24)
     return
 
-def create_figure(wavelength, rprs, rprs_err, outputdir, loop='time',
+def create_planet(x, tstart, i, move, star, padding, dppm, ax):
+    # Adds the planet
+    rprs = np.sqrt(dppm/1e6)
+    planet = Circle((x+tstart+i+move[i], (star.shape[0]-padding*2)/2),
+                    np.nanmedian(rprs)*500,
+                    color='k')
+    ax.add_patch(planet)
+    return
+
+def create_atm(x, tstart, i, move, star, padding, dppm, rainbow, color_ind, ax):
+    # Adds the atmosphere
+    rprs = np.sqrt(dppm/1e6)
+    atm = Circle((x+tstart+i+move[i], (star.shape[0]-padding*2)/2),
+                 1000*rprs[color_ind],
+                 color=rainbow[color_ind],
+                 alpha=0.4)
+    ax.add_patch(atm)
+    return
+
+def add_time_wavelength_text(text_ax, t, i, lim, wavelength, color_ind):
+    tt = ((t[i]+lim)*units.day).to(units.hour).value
+    text_ax.text(s='time = {:.3f} hours'.format(np.round(tt,3)), x=t[50],
+                 y=1.009, fontsize=16)
+    text_ax.text(s='wavelength = {:.3f} $\mu$m'.format(np.round(wavelength[color_ind],
+                                                                3)),
+                 x=t[50], y=1.006, fontsize=16)
+    return
+
+def create_figure(wavelength, dppm, dppm_err, outputdir, loop='time',
                   star_cmap='OrRd_r', labelrp=False, labelrs=False,
-                  labeldepth=False, labelspec=False):
+                  labeldepth=False, labelspec=False,
+                  dontswap=True, transitbehind=False):
     """
     Creates the transit spectroscopy figure.
 
@@ -177,10 +212,10 @@ def create_figure(wavelength, rprs, rprs_err, outputdir, loop='time',
     ----------
     wavelength : np.array
        Center wavelengths for the transmission spectrum.
-    rprs : np.array 
-       Measured RpRs for the transmission spectrum.
-    rprs_err : np.array
-       Measured errors on the RpRs for the transmission spectrum.
+    dppm : np.array
+       Measured dppm for the transmission spectrum.
+    dppm_err : np.array
+       Measured errors on the dppm for the transmission spectrum.
     loop : str, optional
        What parameter to loop over per each frame. Default is 'time'. Other
        option is 'wavelength'.
@@ -203,12 +238,15 @@ def create_figure(wavelength, rprs, rprs_err, outputdir, loop='time',
 
     x = 5
     lim = 0.061
-    tstart=200
-    tend=1050
 
     time = np.arange(0,900,1)
     move = np.linspace(5,620,len(time))
-    rainbow = get_rainbow(N=len(rprs))
+
+    tstart=200
+    tend=1050
+
+    rainbow = get_rainbow(N=len(dppm))
+    rprs = np.sqrt(dppm/1e6)
     t, transit_model = batman_transit(time, rprs[0],
                                       lim=lim)
     transit_model_noise = np.random.normal(0,0.0003,len(transit_model))
@@ -216,12 +254,16 @@ def create_figure(wavelength, rprs, rprs_err, outputdir, loop='time',
     if loop == 'time':
         color_ind = 0
 
-        nframes_per = int(len(t)/len(rprs))
+        nframes_per = int(len(t)/len(dppm))
 
         for i in range(len(time)):
 
             fig, gs, text_ax, ax, ax2 = setup_gridspec()
-            addition = ''
+
+            if transitbehind == True:
+                addition = '_behind'
+            else:
+                addition = '_front'
 
             star = gauplot([(x,x)], [x], ax, [x-5, x+5], [x-5, x+5])
             padding = 500
@@ -229,67 +271,66 @@ def create_figure(wavelength, rprs, rprs_err, outputdir, loop='time',
                           constant_values=np.nan)
 
             # Resets the color of the atmosphere to the last one
-            if i > 470:
-                color_ind = -1
-                t, transit_model = batman_transit(time,
-                                                  rprs[color_ind],
-                                                  lim=lim)
-            if i == 470:
+            if dontswap == False:
+                if i > 470:
+                    color_ind = -1
+                    t, transit_model = batman_transit(time,
+                                                      rprs[color_ind],
+                                                      lim=lim)
+            if i == 880:
                 if labelrp == True:   # Labels Rp on the subplot ax
                     label_rp(ax)
-                    addition = 'a'
+                    addition = '_front_a'
+                    print('good a')
                 if labelrs == True:  # Labels Rp and Rs on the subplot ax
                     label_rp(ax)
                     label_rs(ax)
-                    addition = 'b'
+                    addition = '_front_b'
+                    print('good b')
                 if labeldepth == True: # Labels the depth on text_ax and parameters on ax
                     label_depth(text_ax)
                     label_rp(ax)
                     label_rs(ax)
-                    addition = 'c'
+                    addition = '_front_c'
+                    print('good c')
                 if labelspec == True:  # Labels all components
                     label_spec(ax2, wavelength[color_ind],
-                               rprs[color_ind])
+                               dppm[color_ind])
                     label_depth(text_ax)
                     label_rp(ax)
                     label_rs(ax)
-                    ax2.errorbar(wavelength[0], rprs[0],
+                    ax2.errorbar(wavelength[0], dppm[0]/1e4,
                                  marker='o',
                                  color=rainbow[0], ms=8, lw=3, linestyle='',
-                                 yerr=rprs_err[0])
-                    addition = 'd'
+                                 yerr=dppm_err[0]/1e4)
+                    addition = '_front_d'
 
-            if i > 470:
-                ax2.errorbar(wavelength, rprs, marker='o',
+            if i > 470 and dontswap == False:
+                ax2.errorbar(wavelength, dppm/1e4, marker='o',
                              color='#404040', ms=5, linestyle='',
-                             yerr=rprs_err)
+                             yerr=dppm_err/1e4)
 
             # Adds the star
-            ax.imshow(star[padding:-padding], cmap=star_cmap)
+            if transitbehind == True:
+                create_atm(x, tstart, i, move, star, padding, dppm, rainbow,
+                           color_ind, ax)
+                create_planet(x, tstart, i, move, star, padding, dppm, ax)
+                ax.imshow(star[padding:-padding], cmap=star_cmap)
 
-            # Adds the atmosphere
-            atm = Circle((x+tstart+i+move[i], (star.shape[0]-padding*2)/2),
-                         1000*rprs[color_ind],
-                         color=rainbow[color_ind],
-                         alpha=0.4)
-            ax.add_patch(atm)
+                text_ax.plot(t, transit_model+transit_model_noise,
+                             '.', color=rainbow[color_ind])
 
-            # Adds the planet
-            planet = Circle((x+tstart+i+move[i], (star.shape[0]-padding*2)/2),
-                            np.nanmedian(rprs)*500,
-                            color='k')
-            ax.add_patch(planet)
+            else:
+                ax.imshow(star[padding:-padding], cmap=star_cmap)
+                create_atm(x, tstart, i, move, star, padding, dppm, rainbow,
+                           color_ind, ax)
+                create_planet(x, tstart, i, move, star, padding, dppm, ax)
 
-            text_ax.plot(t[:i],
-                         transit_model[:i]+transit_model_noise[:i],
-                         '.', color=rainbow[color_ind])
+                text_ax.plot(t[:i], transit_model[:i]+transit_model_noise[:i],
+                             '.', color=rainbow[color_ind])
 
             # Adding text
-            tt = ((t[i]+lim)*units.day).to(units.hour).value
-            text_ax.text(s='time = {:.3f} hours'.format(np.round(tt,3)), x=t[50],
-                         y=1.008, fontsize=16)
-            text_ax.text(s='wavelength = {:.3f} $\mu$m'.format(np.round(wavelength[color_ind],3)),
-                         x=t[50], y=1.004, fontsize=16)
+            add_time_wavelength_text(text_ax, t, i, lim, wavelength, color_ind)
             set_limits_labels(ax2, text_ax, t)
             rmv_axes(ax, text_ax, lim)
 
@@ -297,9 +338,20 @@ def create_figure(wavelength, rprs, rprs_err, outputdir, loop='time',
                         dpi=150, rasterize=True, bbox_inches='tight')
             plt.close()
 
+
     elif loop == 'wavelength':
-        i = 470
-        for color_ind in range(len(rprs)):
+        i = 880
+
+        xoffset = np.arange(0, 0.08, 0.0006)
+        yoffset = np.arange(0, 0.01, 0.00004)
+
+        # Creates transits for all Rp/Rs values
+        transit_grid = np.zeros((len(dppm), len(time)))
+        for r in range(len(dppm)):
+            t, transit_model = batman_transit(time, rprs[r], lim=lim)
+            transit_grid[r] = transit_model + transit_model_noise
+
+        for color_ind in range(len(dppm)):
             fig, gs, text_ax, ax, ax2 = setup_gridspec()
 
             star = gauplot([(x,x)], [x], ax, [x-5, x+5], [x-5, x+5])
@@ -309,42 +361,37 @@ def create_figure(wavelength, rprs, rprs_err, outputdir, loop='time',
             ax.imshow(star[padding:-padding], cmap=star_cmap)
 
             # Adds the atmosphere
-            atm = Circle((x+tstart+i+move[i], (star.shape[0]-padding*2)/2),
-                 1000*rprs[color_ind],
-                 color=rainbow[color_ind],
-                 alpha=0.4)
-            ax.add_patch(atm)
+            create_atm(x, tstart, i, move, star, padding, dppm, rainbow,
+                       color_ind, ax)
+            create_planet(x, tstart, i, move, star, padding, dppm, ax)
 
-            # Adds the planet
-            planet = Circle((x+tstart+i+move[i], (star.shape[0]-padding*2)/2),
-                            np.nanmedian(rprs)*500,
-                            color='k')
-            ax.add_patch(planet)
+            subsetx = np.flip(xoffset[:color_ind])
+            subsety = np.flip(yoffset[:color_ind])
+            # Updating the transit model with the correct dppm & plots
+            for c in range(color_ind-1):
+                text_ax.plot(t+subsetx[c],
+                             transit_grid[c]+subsety[c],
+                             marker='.', color=rainbow[c], lw=0,
+                             markeredgecolor='none', alpha=0.2)
 
-            # Updating the transit model with the correct RpRs & plots
-            t, transit_model = batman_transit(time, rprs[color_ind],
-                                              lim=lim)
-            text_ax.plot(t[:i], transit_model[:i]+transit_model_noise[:i],
-                         '.', color=rainbow[color_ind])
+            text_ax.plot(t, transit_grid[color_ind],
+                         marker='.', ms=10,
+                         markeredgecolor=rainbow[color_ind],
+                         color='w', lw=0.1)
 
             # Plots the transmission spectrum
-            ax2.errorbar(wavelength[:color_ind], rprs[:color_ind],
+            ax2.errorbar(wavelength[:color_ind], dppm[:color_ind]/1e4,
                          marker='o', color='#404040', ms=5, linestyle='',
-                         yerr=rprs_err[:color_ind])
+                         yerr=dppm_err[:color_ind]/1e4)
 
-            ax2.errorbar(wavelength[color_ind], rprs[color_ind],
+            ax2.errorbar(wavelength[color_ind], dppm[color_ind]/1e4,
                          marker='o',
-                         yerr=rprs_err[color_ind],
+                         yerr=dppm_err[color_ind]/1e4,
                          color=rainbow[color_ind], ms=8,
                          lw=3)
 
             # Adding text
-            tt = ((t[i]+lim)*units.day).to(units.hour).value
-            text_ax.text(s='time = {:.3f} hours'.format(np.round(tt,3)), x=t[50],
-                         y=1.008, fontsize=16)
-            text_ax.text(s='wavelength = {:.3f} $\mu$m'.format(np.round(wavelength[color_ind],3)),
-                         x=t[50], y=1.004, fontsize=16)
-
+            add_time_wavelength_text(text_ax, t, i, lim, wavelength, color_ind)
             set_limits_labels(ax2, text_ax, t)
             rmv_axes(ax, text_ax, lim)
             plt.savefig(os.path.join(outputdir,
